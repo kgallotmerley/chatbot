@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast Food Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .chatbox {
+            background-color: white;
+            padding: 20px;
+            width: 300px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        .user-input {
+            display: flex;
+            margin-top: 10px;
+        }
+        .user-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .user-input button {
+            padding: 10px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .user-input button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .bot {
+            font-weight: bold;
+        }
+        .menu {
+            list-style-type: none;
+            padding: 0;
+        }
+        .menu li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbox">
+        <div class="messages" id="messages">
+            <div class="message bot">Bonjour et bienvenue au FastFoodBot ! Que souhaitez-vous commander aujourd'hui ?</div>
+        </div>
+        <div class="user-input">
+            <input type="text" id="userInput" placeholder="Entrez votre commande..." />
+            <button onclick="handleUserInput()">Envoyer</button>
+        </div>
+    </div>
+
+    <script>
+        let step = 0;
+        let order = {
+            burger: '',
+            accompaniments: '',
+            drink: '',
+            customizations: [],
+            totalPrice: 0
+        };
+
+        const prices = {
+            burger: 5,
+            bacon: 1,
+            cheese: 0.5,
+            accompaniment: 2,
+            drink: 1.5
+        };
+
+        const menu = {
+            burgers: ["Cheeseburger", "Burger classique", "Burger végétarien"],
+            accompaniments: ["Frites petites", "Frites moyennes", "Frites grandes"],
+            drinks: ["Coca-Cola", "Pepsi", "Eau", "Jus d'orange"]
+        };
+
+        function handleUserInput() {
+            const inputField = document.getElementById('userInput');
+            const userMessage = inputField.value.trim();
+            if (userMessage === '') return;
+
+            const messagesContainer = document.getElementById('messages');
+            messagesContainer.innerHTML += `<div class="message user">${userMessage}</div>`;
+            inputField.value = '';  // Clear input
+
+            // Move to the next step
+            step++;
+
+            setTimeout(() => {
+                handleChatFlow(userMessage);
+            }, 1000);
+        }
+
+        function handleChatFlow(userMessage) {
+            const messagesContainer = document.getElementById('messages');
+            
+            if (step === 1) {
+                // Burger selection
+                messagesContainer.innerHTML += `<div class="message bot">Voici nos burgers disponibles :</div>`;
+                displayMenu('burgers');
+                messagesContainer.innerHTML += `<div class="message bot">Quel burger souhaitez-vous ?</div>`;
+            } else if (step === 2) {
+                // Customization
+                order.burger = userMessage;
+                messagesContainer.innerHTML += `<div class="message bot">Vous avez choisi : ${userMessage}. Souhaitez-vous personnaliser votre burger (bacon, fromage supplémentaire) ?</div>`;
+            } else if (step === 3) {
+                // Customization for bacon or cheese
+                if (userMessage.toLowerCase().includes('bacon')) {
+                    order.customizations.push('Bacon ajouté');
+                    order.totalPrice += prices.bacon;
+                }
+                if (userMessage.toLowerCase().includes('fromage')) {
+                    order.customizations.push('Fromage supplémentaire ajouté');
+                    order.totalPrice += prices.cheese;
+                }
+                messagesContainer.innerHTML += `<div class="message bot">Personnalisation ajoutée : ${order.customizations.join(', ')}. Voici nos accompagnements disponibles :</div>`;
+                displayMenu('accompaniments');
+                messagesContainer.innerHTML += `<div class="message bot">Quel accompagnement souhaitez-vous ?</div>`;
+            } else if (step === 4) {
+                // Accompaniment selection
+                order.accompaniments = userMessage;
+                order.totalPrice += prices.accompaniment;
+                messagesContainer.innerHTML += `<div class="message bot">Vous avez choisi : ${userMessage}. Voici nos boissons disponibles :</div>`;
+                displayMenu('drinks');
+                messagesContainer.innerHTML += `<div class="message bot">Quelle boisson souhaitez-vous ?</div>`;
+            } else if (step === 5) {
+                // Drink selection
+                order.drink = userMessage;
+                order.totalPrice += prices.drink;
+                messagesContainer.innerHTML += `<div class="message bot">Vous avez choisi : ${userMessage}. Voici votre commande :</div>`;
+                setTimeout(() => {
+                    messagesContainer.innerHTML += `<div class="message bot">Burger : ${order.burger}</div>`;
+                    if (order.customizations.length > 0) {
+                        messagesContainer.innerHTML += `<div class="message bot">Personnalisation : ${order.customizations.join(', ')}</div>`;
+                    }
+                    messagesContainer.innerHTML += `<div class="message bot">Accompagnement : ${order.accompaniments}</div>`;
+                    messagesContainer.innerHTML += `<div class="message bot">Boisson : ${order.drink}</div>`;
+                    messagesContainer.innerHTML += `<div class="message bot">Le total de votre commande est : ${order.totalPrice}€. Confirmez-vous cette commande ? (oui/non)</div>`;
+                }, 1000);
+            } else if (step === 6) {
+                // Final confirmation
+                if (userMessage.toLowerCase() === 'oui') {
+                    const orderNumber = Math.floor(Math.random() * 10000);
+                    messagesContainer.innerHTML += `<div class="message bot">Merci ! Votre commande est confirmée. Votre numéro de commande est ${orderNumber}.</div>`;
+                    messagesContainer.innerHTML += `<div class="message bot">Veuillez entrer votre adresse de livraison :</div>`;
+                    step++;
+                } else {
+                    messagesContainer.innerHTML += `<div class="message bot">D'accord, recommençons la commande.</div>`;
+                    resetOrder();
+                    setTimeout(() => {
+                        messagesContainer.innerHTML += `<div class="message bot">Que souhaitez-vous commander aujourd'hui ?</div>`;
+                        step = 0;
+                    }, 1000);
+                }
+            } else if (step === 7) {
+                // Address input
+                order.deliveryAddress = userMessage;
+                messagesContainer.innerHTML += `<div class="message bot">Votre commande sera livrée à l'adresse suivante : ${order.deliveryAddress}. Merci pour votre commande !</div>`;
+                resetOrder();
+                step = 0;
+            }
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function displayMenu(category) {
+            const messagesContainer = document.getElementById('messages');
+            const menuItems = menu[category];
+            const menuList = document.createElement('ul');
+            menuItems.forEach(item => {
+                const listItem = document.createElement('li');
+                listItem.textContent = item;
+                menuList.appendChild(listItem);
+            });
+            messagesContainer.appendChild(menuList);
+        }
+
+        function resetOrder() {
+            order = {
+                burger: '',
+                accompaniments: '',
+                drink: '',
+                customizations: [],
+                totalPrice: 0
+            };
+        }
+    </script>
+</body>
+</html>
